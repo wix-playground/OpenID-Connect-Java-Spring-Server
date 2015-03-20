@@ -18,16 +18,23 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.mitre</groupId>
+	<groupId>com.wixpress.org.mitre</groupId>
 	<artifactId>openid-connect-parent</artifactId>
 	<version>1.2.0-SNAPSHOT</version>
 	<name>MITREid Connect</name>
 	<packaging>pom</packaging>
+<!--
 	<parent>
 		<groupId>org.sonatype.oss</groupId>
 		<artifactId>oss-parent</artifactId>
 		<version>9</version>
 	</parent>
+-->
+    <parent>
+        <groupId>com.wixpress.common</groupId>
+        <artifactId>wix-master-parent</artifactId>
+        <version>100.0.0-SNAPSHOT</version>
+    </parent>
 	<licenses>
 		<license>
 			<name>The Apache Software License, Version 2.0</name>
@@ -39,18 +46,30 @@
 	<modules>
 		<module>openid-connect-common</module>
 		<module>openid-connect-client</module>
+<!--
 		<module>openid-connect-server</module>
 		<module>openid-connect-server-webapp</module>
+-->
 	</modules>
 
+<!--
 	<scm>
 		<connection>scm:git:https://github.com/mitreid-connect/OpenID-Connect-Java-Spring-Server.git</connection>
 		<developerConnection>scm:git:git@github.com:mitreid-connect/OpenID-Connect-Java-Spring-Server.git</developerConnection>
 		<url>https://github.com/mitreid-connect/OpenID-Connect-Java-Spring-Server.git</url>
 		<tag>HEAD</tag>
 	</scm>
+-->
 
 	<developers>
+        <developer>
+            <name>Jefim Matskin</name>
+            <email>jefimm@wix.com</email>
+            <roles>
+                <role>owner</role>
+            </roles>
+        </developer>
+<!--
 		<developer>
 			<id>jricher</id>
 			<name>Justin Richer</name>
@@ -61,6 +80,7 @@
 			<name>Amanda Anganes</name>
 			<email>aanganes@mitre.org</email>
 		</developer>
+-->
 	</developers>
 
 	<mailingLists>
@@ -97,11 +117,13 @@
 					<artifactId>maven-archiver</artifactId>
 					<version>2.5</version>
 				</plugin>
-				<plugin>
+<!--
+                <plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-javadoc-plugin</artifactId>
 					<version>2.9</version>
 				</plugin>
+-->
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-deploy-plugin</artifactId>
@@ -131,6 +153,7 @@
 			</plugins>
 		</pluginManagement>
 		<plugins>
+			<!--
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
@@ -152,6 +175,7 @@
 					</execution>
 				</executions>
 			</plugin>
+			-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
@@ -206,7 +230,8 @@
 
 	<reporting>
 		<plugins>
-			<plugin>
+<!--
+            <plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<version>2.9</version>
@@ -220,6 +245,7 @@
 					<overview>${basedir}/src/main/javadoc/overview.html</overview>
 				</configuration>
 			</plugin>
+-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
@@ -448,15 +474,17 @@
 
 			<!-- MITREid Connect components -->
 			<dependency>
-				<groupId>org.mitre</groupId>
+				<groupId>com.wixpress.org.mitre</groupId>
 				<artifactId>openid-connect-common</artifactId>
 				<version>${project.version}</version>
 			</dependency>
-			<dependency>
+<!--
+            <dependency>
 				<groupId>org.mitre</groupId>
 				<artifactId>openid-connect-server</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+-->
 
 			<!-- Other libraries -->
 			<dependency>

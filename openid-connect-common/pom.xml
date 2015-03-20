@@ -21,12 +21,14 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<artifactId>openid-connect-parent</artifactId>
-		<groupId>org.mitre</groupId>
+		<groupId>com.wixpress.org.mitre</groupId>
 		<version>1.2.0-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
-	<artifactId>openid-connect-common</artifactId>
-	<description>OpenID Connect Common modules</description>
+    <artifactId>openid-connect-common</artifactId>
+    <groupId>com.wixpress.org.mitre</groupId>
+    <version>1.2.0-SNAPSHOT</version>
+    <description>OpenID Connect Common modules</description>
 	<name>OpenID Connect Common</name>
 	<dependencies>
 		<dependency>
@@ -105,7 +107,8 @@
 				</executions>
 			</plugin>
 			<!-- BUILD JavaDoc FILES -->
-			<plugin>
+<!--
+	        <plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<executions>
@@ -117,6 +120,7 @@
 					</execution>
 				</executions>
 			</plugin>
+-->
 		</plugins>
 	</build>
 </project>
