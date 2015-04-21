@@ -10,7 +10,6 @@ import org.mitre.openid.connect.client.service.impl.StaticServerConfigurationSer
 import org.mitre.openid.connect.client.service.impl.StaticSingleIssuerService;
 import org.mitre.openid.connect.config.ServerConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -22,14 +21,12 @@ import java.util.Map;
 /**
  * Created by Jefim_Matzkin on 2/10/15.
  */
-@Configuration(value = "googleClientConfig")
 public class MitreOpenIdConnectForGoogle {
     private static final String ACCOUNTS_GOOGLE_COM = "accounts.google.com";
 
-    private String googleClientId,
+    protected String googleClientId,
             googleClientName,
             googleClientSecret;
-
 
     @Bean(name = {"staticIssuerService"})
     public StaticSingleIssuerService createStaticSingleIssuerService() {
