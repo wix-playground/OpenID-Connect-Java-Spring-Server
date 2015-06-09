@@ -15,41 +15,48 @@
  * limitations under the License.
  *******************************************************************************/
 /**
- * 
+ *
  */
 package org.mitre.jwt.signer.service.impl;
-
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.mitre.jose.keystore.JWKSetKeyStore;
-import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService;
-import org.mitre.jwt.encryption.service.impl.DefaultJWTEncryptionAndDecryptionService;
-import org.mitre.jwt.signer.service.JWTSigningAndValidationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.nimbusds.jose.jwk.JWKSet;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.entity.ContentType;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
+import org.mitre.jose.keystore.JWKSetKeyStore;
+import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService;
+import org.mitre.jwt.encryption.service.impl.DefaultJWTEncryptionAndDecryptionService;
+import org.mitre.jwt.signer.service.JWTSigningAndValidationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+
+import java.nio.charset.Charset;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
- * 
+ *
  * Creates a caching map of JOSE signers/validators and encrypters/decryptors
  * keyed on the JWK Set URI. Dynamically loads JWK Sets to create the services.
- * 
+ *
  * @author jricher
- * 
+ *
  */
 @Service
 public class JWKSetCacheService {
+	private HttpClient httpClient = HttpClientBuilder.create().useSystemProperties().build();
 
 	/**
 	 * Logger for this class
@@ -103,30 +110,49 @@ public class JWKSetCacheService {
 		}
 	}
 
+	JWKSetKeyStore fetch(String key) throws Exception {
+		HttpGet method = new HttpGet(key);
+		HttpResponse result;
+		HttpStatus httpStatus;
+		try {
+			result = httpClient.execute(method);
+			httpStatus = org.springframework.http.HttpStatus.valueOf((result.getStatusLine().getStatusCode()));
+		} catch (Exception e) {
+			method.abort();
+			throw e;
+		}
+
+		if (HttpStatus.OK.equals(httpStatus)) {
+			JWKSet jwkSet = JWKSet.parse(EntityUtils.toString(result.getEntity()));
+			return new JWKSetKeyStore(jwkSet);
+		} else {
+			byte[] content = null;
+			Charset charset = null;
+			String reason = result.getStatusLine().getReasonPhrase();
+			HttpEntity entity = result.getEntity();
+			if (entity != null) {
+				charset = ContentType.getOrDefault(entity).getCharset();
+				content = EntityUtils.toByteArray(entity);
+			}
+			method.abort();
+			if (HttpStatus.Series.CLIENT_ERROR.equals(httpStatus.series())) {
+				throw new HttpClientErrorException(httpStatus, reason, content, charset);
+			}
+			throw new HttpServerErrorException(httpStatus, reason, content, charset);
+		}
+	}
+
 	/**
 	 * @author jricher
 	 *
 	 */
 	private class JWKSetVerifierFetcher extends CacheLoader<String, JWTSigningAndValidationService> {
-		private HttpClient httpClient = HttpClientBuilder.create().useSystemProperties().build();
-		private HttpComponentsClientHttpRequestFactory httpFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
-		private RestTemplate restTemplate = new RestTemplate(httpFactory);
-
 		/**
 		 * Load the JWK Set and build the appropriate signing service.
 		 */
 		@Override
 		public JWTSigningAndValidationService load(String key) throws Exception {
-
-			String jsonString = restTemplate.getForObject(key, String.class);
-			JWKSet jwkSet = JWKSet.parse(jsonString);
-
-			JWKSetKeyStore keyStore = new JWKSetKeyStore(jwkSet);
-
-			JWTSigningAndValidationService service = new DefaultJWTSigningAndValidationService(keyStore);
-
-			return service;
-
+			return new DefaultJWTSigningAndValidationService(fetch(key));
 		}
 
 	}
@@ -136,22 +162,12 @@ public class JWKSetCacheService {
 	 *
 	 */
 	private class JWKSetEncryptorFetcher extends CacheLoader<String, JWTEncryptionAndDecryptionService> {
-		private HttpClient httpClient = HttpClientBuilder.create().useSystemProperties().build();
-		private HttpComponentsClientHttpRequestFactory httpFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
-		private RestTemplate restTemplate = new RestTemplate(httpFactory);
 		/* (non-Javadoc)
 		 * @see com.google.common.cache.CacheLoader#load(java.lang.Object)
 		 */
 		@Override
 		public JWTEncryptionAndDecryptionService load(String key) throws Exception {
-			String jsonString = restTemplate.getForObject(key, String.class);
-			JWKSet jwkSet = JWKSet.parse(jsonString);
-
-			JWKSetKeyStore keyStore = new JWKSetKeyStore(jwkSet);
-
-			JWTEncryptionAndDecryptionService service = new DefaultJWTEncryptionAndDecryptionService(keyStore);
-
-			return service;
+			return new DefaultJWTEncryptionAndDecryptionService(fetch(key));
 		}
 	}
 
